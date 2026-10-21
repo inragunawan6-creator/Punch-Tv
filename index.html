@@ -1,0 +1,991 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Punch TV: siaran langsung, reels, dan ranking bela diri dari sasana, kampus, dan liga di Tasikmalaya, Bandung, dan Jakarta.">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Punch TV</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: arena broadcast — wide featured stage + chat, a wall of selectable live screens, a vertical reels strip, then schedule, channels, tiers, sign-up */
+:root{
+  --bg:#14121a; --surface:#1d1a25; --raise:#272333; --line:#36304a;
+  --fg:#efeaf6; --muted:#a39bb5;
+  --red:#e2463a; --blue:#3d7be0; --gold:#e8b23a; --green:#2fb57a; --violet:#9b7bea; --orange:#ef8d3c;
+  --f-display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#f3f1f6; --surface:#ffffff; --raise:#ebe7f2; --line:#d6d0e2;
+    --fg:#1b1724; --muted:#5f5872;
+    --red:#c8322a; --blue:#2a62c4; --gold:#9a6b00; --green:#14794f; --violet:#6a46c9; --orange:#b45309;
+    color-scheme:light;
+  }
+}
+:root[data-theme="light"]{
+  --bg:#f3f1f6; --surface:#ffffff; --raise:#ebe7f2; --line:#d6d0e2;
+  --fg:#1b1724; --muted:#5f5872;
+  --red:#c8322a; --blue:#2a62c4; --gold:#9a6b00; --green:#14794f; --violet:#6a46c9; --orange:#b45309;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.wrap{max-width:1320px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+a{color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+/* Header */
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;gap:12px 20px;padding-block:12px}
+.logo{font-family:var(--f-display);font-weight:900;font-size:28px;letter-spacing:.02em;text-transform:uppercase;line-height:1;display:flex;align-items:center;gap:8px;text-decoration:none}
+.logo i{display:inline-block;width:12px;height:22px;background:linear-gradient(var(--red) 50%,var(--blue) 50%);transform:skewX(-12deg)}
+/* Toolbar: one tab per view, each with its own color */
+nav.tabs{display:flex;gap:2px;align-self:stretch;align-items:stretch}
+.tab{position:relative;display:flex;align-items:center;gap:7px;padding:0 12px;color:var(--muted);text-decoration:none;font-weight:500;border-radius:4px}
+.tab svg{width:18px;height:18px;flex:none}
+.tab:hover{color:var(--fg);background:var(--raise)}
+.tab[aria-current="page"]{color:var(--fg)}
+.tab[aria-current="page"] svg{color:var(--tc)}
+.tab[aria-current="page"]::after{content:"";position:absolute;left:8px;right:8px;bottom:-12px;height:3px;border-radius:2px 2px 0 0;background:var(--tc)}
+.tab .cnt{font-family:var(--f-mono);font-size:11px;line-height:1;padding:3px 5px;border-radius:3px;background:var(--red);color:#fff}
+.tab .cnt:empty{display:none}
+@media (max-width:760px){
+  nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);justify-content:space-around;gap:0;
+    padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
+  .tab{flex:1;flex-direction:column;justify-content:center;gap:3px;padding:6px 2px;font-size:11px}
+  .tab svg{width:22px;height:22px}
+  .tab .cnt{position:absolute;top:2px;left:calc(50% + 6px);font-size:10px;padding:2px 4px}
+  .tab[aria-current="page"]{color:var(--tc);background:var(--raise)}
+  .tab[aria-current="page"]::after{display:none}
+  body{padding-bottom:calc(68px + env(safe-area-inset-bottom,0px))}
+  .proto{display:none}
+  .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+}
+.view{padding-block:8px 40px}
+.view .sec-h h2::before{content:"";display:inline-block;width:9px;height:.78em;margin-right:10px;background:var(--vc);transform:skewX(-12deg)}
+.sub-sec{border-top:1px solid var(--line);margin-top:32px;padding-top:28px}
+.bar .cta{margin-left:auto}
+.btn{display:inline-flex;align-items:center;gap:8px;border:0;cursor:pointer;font-weight:600;padding:9px 16px;border-radius:4px;text-decoration:none}
+.btn-red{background:var(--red);color:#fff}
+.btn-ghost{background:transparent;border:1px solid var(--line)}
+.btn-ghost:hover{background:var(--raise)}
+.proto{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);border:1px solid var(--gold);padding:2px 6px;border-radius:3px}
+
+/* Featured stage */
+.stage-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding-top:18px}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:3px;background:var(--gold);color:#1b1408}
+.eyebrow.watch{background:var(--raise);color:var(--fg)}
+.stage-head h1{font-family:var(--f-display);font-weight:900;text-transform:uppercase;font-size:clamp(26px,4vw,44px);line-height:1;margin:0;text-wrap:balance}
+.stage-head .back{margin-left:auto}
+.stage{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;padding-block:14px 8px}
+@media (max-width:960px){.stage{grid-template-columns:minmax(0,1fr)}}
+.player{position:relative;aspect-ratio:16/9;max-width:100%;border-radius:6px;overflow:hidden;background:#0b0a0f}
+.media{position:absolute;inset:0;background:#0b0a0f}
+.media img,.media video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.media video{opacity:0;transition:opacity .6s ease}
+.media.on video{opacity:1}
+.media .load{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.6);color:#fff;font-family:var(--f-mono);font-size:12px;padding:4px 10px;border-radius:3px;letter-spacing:.04em;transition:opacity .3s}
+.media.on .load{opacity:0}
+.ov{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:12px;pointer-events:none;color:#fff}
+.ov-top{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.live{background:#e2463a;color:#fff;font-family:var(--f-mono);font-size:12px;padding:3px 8px;border-radius:3px;display:inline-flex;gap:6px;align-items:center}
+.live b{width:7px;height:7px;border-radius:50%;background:#fff;animation:pulse 1.2s infinite}
+@keyframes pulse{50%{opacity:.25}}
+.chip-dark{background:rgba(0,0,0,.6);color:#fff;font-family:var(--f-mono);font-size:12px;padding:3px 8px;border-radius:3px}
+.chip-gold{background:#e8b23a;color:#1b1408;font-family:var(--f-mono);font-size:12px;padding:3px 8px;border-radius:3px;letter-spacing:.06em}
+.note{margin-left:auto;background:rgba(0,0,0,.6);font-size:11px;padding:3px 8px;border-radius:3px}
+.score{display:grid;grid-template-columns:1fr auto 1fr;align-items:stretch;background:rgba(10,9,14,.82);border-radius:4px;overflow:hidden;font-family:var(--f-display);text-transform:uppercase}
+.corner{padding:6px 12px;display:flex;flex-direction:column;justify-content:center;min-width:0}
+.corner.r{border-left:6px solid #e2463a}
+.corner.b{border-right:6px solid #3d7be0;text-align:right}
+.corner .nm{font-size:clamp(15px,2.4vw,26px);font-weight:900;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.corner .gm{font-family:var(--f-body);text-transform:none;font-size:11px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.clock{padding:6px 14px;text-align:center;background:rgba(255,255,255,.06);display:flex;flex-direction:column;justify-content:center}
+.clock .rd{font-size:12px;letter-spacing:.08em;opacity:.8}
+.clock .t{font-family:var(--f-mono);font-size:clamp(16px,2.6vw,28px);font-variant-numeric:tabular-nums}
+.strip{background:rgba(10,9,14,.82);border-radius:4px;padding:8px 12px;font-family:var(--f-display);text-transform:uppercase;font-size:clamp(16px,2.4vw,24px);font-weight:900;border-left:6px solid #e8b23a}
+.strip small{display:block;font-family:var(--f-body);text-transform:none;font-size:12px;font-weight:400;opacity:.75}
+.ctrl{position:absolute;right:12px;top:44px;display:flex;gap:6px}
+.ctrl button{background:rgba(0,0,0,.6);color:#fff;border:0;border-radius:3px;padding:4px 8px;font-size:12px;cursor:pointer}
+
+.info{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center;margin-top:12px}
+.meta{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-size:12px;padding:2px 8px;border-radius:999px;background:var(--raise);color:var(--muted);font-weight:500}
+.info .act{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+
+/* Chat */
+.chat{background:var(--surface);border:1px solid var(--line);border-radius:6px;display:flex;flex-direction:column;min-height:420px;max-height:600px}
+@media (max-width:960px){.chat{max-height:380px;min-height:320px}}
+.chat h2{font-size:13px;letter-spacing:.06em;text-transform:uppercase;margin:0;padding:12px 14px;border-bottom:1px solid var(--line);color:var(--muted);display:flex;gap:8px;justify-content:space-between}
+.chat h2 span:last-child{text-transform:none;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60%}
+.msgs{flex:1;overflow-y:auto;padding:10px 14px;display:flex;flex-direction:column;gap:6px;min-height:0}
+.msg{font-size:14px;overflow-wrap:anywhere}
+.msg .u{font-weight:600;margin-right:6px}
+.msg .u.r{color:var(--red)} .msg .u.b{color:var(--blue)} .msg .u.g{color:var(--gold)}
+.msg.sys{color:var(--muted);font-size:12px;font-style:italic}
+.chat form{display:flex;gap:8px;padding:10px;border-top:1px solid var(--line)}
+.chat input{flex:1;min-width:0;background:var(--raise);border:1px solid var(--line);border-radius:4px;padding:8px 10px}
+.polls{padding:10px 14px;border-top:1px solid var(--line)}
+.polls p{margin:0 0 6px;font-size:13px;font-weight:600}
+.pollrow{display:flex;gap:6px}
+.pollrow button{flex:1;border:0;border-radius:4px;padding:8px;cursor:pointer;font-weight:600;color:#fff}
+.pollrow .pr{background:var(--red)} .pollrow .pb{background:var(--blue)}
+.pollbar{display:flex;height:6px;border-radius:3px;overflow:hidden;margin-top:8px;background:var(--raise)}
+.pollbar span:first-child{background:var(--red)} .pollbar span:last-child{background:var(--blue)}
+.pollnum{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:11px;color:var(--muted);margin-top:4px}
+
+/* Live wall */
+.wall{padding-block:16px 28px}
+.sec-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px;margin-bottom:14px}
+.sec-h h2{font-family:var(--f-display);font-weight:900;text-transform:uppercase;font-size:clamp(24px,3.4vw,32px);margin:0;line-height:1}
+.sec-h p{margin:0;color:var(--muted)}
+.sec-h .fgroup{margin-left:auto}
+.screens{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.scr{all:unset;cursor:pointer;display:flex;flex-direction:column;gap:8px;border-radius:6px;min-width:0}
+.scr .thumb{position:relative;aspect-ratio:16/9;max-width:100%;border-radius:6px;overflow:hidden;background:#0b0a0f;outline:2px solid transparent;outline-offset:2px;transition:outline-color .15s}
+.scr:hover .thumb{outline-color:var(--line)}
+.scr[aria-current="true"] .thumb{outline-color:var(--gold)}
+.scr:focus-visible .thumb{outline-color:var(--gold)}
+.scr .tl{position:absolute;left:8px;top:8px;display:flex;gap:6px;flex-wrap:wrap}
+.scr .tl .live{font-size:11px;padding:2px 6px}
+.scr .tl .chip-dark,.scr .tl .chip-gold{font-size:11px;padding:2px 6px}
+.scr .br{position:absolute;right:8px;bottom:8px}
+.scr .now{position:absolute;inset:0;display:grid;place-items:center;background:rgba(10,9,14,.55);color:#fff;font-weight:600;font-size:14px}
+.scr .ttl{font-weight:600;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.scr .sub{color:var(--muted);font-size:13px;margin-top:-4px}
+
+.fgroup{display:flex;flex-wrap:wrap;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:4px}
+.fgroup button{border:0;background:transparent;color:var(--muted);padding:6px 10px;border-radius:4px;cursor:pointer;font-size:13px;font-weight:500}
+.fgroup button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
+
+/* Sections */
+section.view{padding-block:24px 48px}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+
+/* Reels strip */
+.reels{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
+@media (max-width:520px){.reels{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.reel{all:unset;cursor:pointer;position:relative;aspect-ratio:9/16;max-width:100%;border-radius:8px;overflow:hidden;background:#0b0a0f;scroll-snap-align:start;color:#fff}
+.reel:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.reel .shade{position:absolute;inset:auto 0 0 0;padding:40px 10px 10px;background:linear-gradient(transparent,rgba(0,0,0,.85));display:flex;flex-direction:column;gap:4px}
+.reel .who{font-weight:600;font-size:13px;display:flex;gap:6px;align-items:center;min-width:0}
+.reel .who span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kind{font-family:var(--f-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:1px 5px;border-radius:3px;background:rgba(255,255,255,.18);flex:none}
+.reel .cap{font-size:12px;opacity:.9;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.reel .views{position:absolute;left:8px;top:8px;font-family:var(--f-mono);font-size:11px;background:rgba(0,0,0,.55);padding:2px 6px;border-radius:3px}
+.reels-empty{color:var(--muted);padding:24px 0}
+
+/* Reels viewer (always dark: it is a video surface) */
+.rv{position:fixed;inset:0;z-index:30;background:rgba(6,5,9,.94);display:flex;align-items:center;justify-content:center;gap:16px;
+  padding:calc(16px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));color:#fff}
+.rv-frame{position:relative;height:min(88vh,calc((100vw - 32px)*16/9));aspect-ratio:9/16;max-width:100%;border-radius:10px;overflow:hidden;background:#0b0a0f}
+.rv-prog{position:absolute;left:10px;right:10px;top:10px;height:3px;background:rgba(255,255,255,.25);border-radius:2px;overflow:hidden}
+.rv-prog span{display:block;height:100%;width:0;background:#fff}
+.rv-paused{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--f-mono);font-size:13px;letter-spacing:.08em;background:rgba(0,0,0,.35)}
+.rv-cap{position:absolute;left:0;right:64px;bottom:0;padding:60px 14px 16px;background:linear-gradient(transparent,rgba(0,0,0,.85));display:flex;flex-direction:column;gap:6px}
+.rv-who{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-weight:600}
+.rv-who .ava{width:32px;height:32px;font-size:14px}
+.rv-follow{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.6);border-radius:4px;padding:2px 10px;font-size:12px;cursor:pointer}
+.rv-cap p{margin:0;font-size:14px}
+.rv-cap .aud{font-size:12px;opacity:.75;font-family:var(--f-mono)}
+.rv-side{position:absolute;right:8px;bottom:18px;display:flex;flex-direction:column;gap:14px;align-items:center}
+.rv-side button{background:rgba(0,0,0,.4);border:0;color:#fff;cursor:pointer;width:48px;border-radius:24px;padding:8px 0;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-family:var(--f-mono)}
+.rv-side svg{width:22px;height:22px}
+.rv-side button[aria-pressed="true"] svg{fill:#e2463a;stroke:#e2463a}
+.rv-nav{display:flex;flex-direction:column;gap:10px}
+.rv-nav button,.rv-close{background:rgba(255,255,255,.12);color:#fff;border:0;width:44px;height:44px;border-radius:22px;cursor:pointer;display:grid;place-items:center}
+.rv-nav button:disabled{opacity:.3;cursor:default}
+.rv-close{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));right:max(14px,env(safe-area-inset-right,0px));z-index:2}
+.rv-count{font-family:var(--f-mono);font-size:12px;opacity:.7;text-align:center}
+@media (max-width:640px){.rv-nav{display:none}.rv{padding:0}.rv-frame{height:100%;border-radius:0}}
+
+/* Schedule board */
+.board{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--surface)}
+.row{display:grid;grid-template-columns:108px minmax(0,1fr) 170px 120px;gap:12px;align-items:center;padding:12px 14px;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.when{font-family:var(--f-mono);font-size:13px;font-variant-numeric:tabular-nums}
+.when small{display:block;color:var(--muted);font-family:var(--f-body)}
+.bout{min-width:0}
+.bout .vs{font-weight:600;display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center}
+.bout .vs .r{color:var(--red)} .bout .vs .b{color:var(--blue)}
+.bout .vs em{font-style:normal;color:var(--muted);font-size:12px}
+.bout .ev{color:var(--muted);font-size:13px}
+.where{font-size:13px;color:var(--muted)}
+.row .btn{justify-self:end;font-size:13px;padding:7px 12px}
+.state-live{color:var(--red);font-weight:600}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+@media (max-width:720px){
+  .row{grid-template-columns:84px minmax(0,1fr)}
+  .where{grid-column:2}
+  .row .btn{grid-column:1 / -1;justify-self:stretch;justify-content:center}
+}
+
+/* Channels */
+.chans{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.chan{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.chan-top{display:flex;gap:10px;align-items:center}
+.ava{width:42px;height:42px;border-radius:6px;display:grid;place-items:center;font-family:var(--f-display);font-weight:900;font-size:18px;color:#fff;flex:none}
+.chan h3{margin:0;font-size:15px;line-height:1.2}
+.chan .sub{color:var(--muted);font-size:12px}
+.chan .stat{display:flex;gap:12px;flex-wrap:wrap;font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.chan .btn{justify-content:center;font-size:13px;padding:7px}
+.chan .btn[aria-pressed="true"]{background:var(--raise)}
+
+/* Tiers */
+.tiers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:720px){.tiers{grid-template-columns:minmax(0,1fr)}}
+.tier{padding:16px;border-left:4px solid var(--line);background:var(--surface);border-radius:0 6px 6px 0}
+.tier h3{font-family:var(--f-display);text-transform:uppercase;font-size:22px;margin:0 0 4px}
+.tier p{margin:0;color:var(--muted);font-size:14px}
+.tier.n{border-color:var(--gold)} .tier.re{border-color:var(--red)} .tier.lo{border-color:var(--blue)}
+
+
+/* Ranking */
+.rk-controls{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.rk-classes{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}
+.rk-lbl{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.rk-meta{margin:0 0 14px;color:var(--muted);font-size:13px}
+.podium{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px}
+@media (max-width:760px){.podium{grid-template-columns:minmax(0,1fr)}}
+.pod{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:14px;display:flex;gap:14px;align-items:center;min-width:0}
+.pod.p1{border-color:var(--orange);box-shadow:inset 0 3px 0 var(--orange)}
+.pod .pos{font-family:var(--f-display);font-weight:900;font-size:46px;line-height:.85;color:var(--muted);flex:none;width:34px;text-align:center}
+.pod.p1 .pos{color:var(--orange)}
+.pod .who{min-width:0;display:flex;flex-direction:column;gap:3px}
+.pod .ttl{font-family:var(--f-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.pod.p1 .ttl{color:var(--orange)}
+.pod .nm{font-family:var(--f-display);font-weight:900;text-transform:uppercase;font-size:22px;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pod .gy{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pod .st{display:flex;gap:10px;flex-wrap:wrap;font-family:var(--f-mono);font-size:12px;font-variant-numeric:tabular-nums}
+.rk-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--surface)}
+.rk-table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.rk-table th{text-align:left;font-family:var(--f-mono);font-weight:500;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+.rk-table td{padding:10px 12px;border-top:1px solid var(--line);vertical-align:middle}
+.rk-table tr:first-child td{border-top:0}
+.rk-table .num{text-align:right;font-family:var(--f-mono)}
+.rk-table .pos{font-family:var(--f-display);font-weight:900;font-size:20px;width:36px}
+.rk-table .nm{font-weight:600}
+.rk-table .gy{display:block;color:var(--muted);font-size:12px}
+.mv{font-family:var(--f-mono);font-size:12px;white-space:nowrap}
+.mv.up{color:var(--green)} .mv.dn{color:var(--red)} .mv.eq{color:var(--muted)} .mv.new{color:var(--gold)}
+.form{display:flex;gap:3px}
+.form i{font-style:normal;font-family:var(--f-mono);font-size:10px;width:18px;height:18px;display:grid;place-items:center;border-radius:3px;color:#fff}
+.form .M{background:var(--green)} .form .K{background:var(--red)} .form .S{background:var(--muted)}
+.livechip{all:unset;cursor:pointer;margin-left:6px;font-family:var(--f-mono);font-size:10px;color:#fff;background:var(--red);padding:1px 5px;border-radius:3px;vertical-align:2px}
+.livechip:focus-visible{outline:2px solid var(--gold)}
+@media (max-width:620px){.rk-table .c-city,.rk-table .c-form{display:none}}
+.rk-note{margin-top:20px;padding:16px;border-left:4px solid var(--orange);background:var(--surface);border-radius:0 6px 6px 0}
+.rk-note h3{margin:0 0 6px;font-size:15px}
+.rk-note ul{margin:0 0 8px;padding-left:18px;color:var(--muted)}
+.rk-note p{margin:0;font-size:13px;color:var(--muted)}
+
+/* Broadcast form */
+.broadcast{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:24px;align-items:start}
+@media (max-width:820px){.broadcast{grid-template-columns:minmax(0,1fr)}}
+.broadcast ul{padding-left:18px;margin:12px 0 0;color:var(--muted)}
+.broadcast li{margin-bottom:6px}
+form.apply{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:520px){form.apply{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field.full{grid-column:1 / -1}
+.field label{font-size:13px;font-weight:600}
+.field input,.field select,.field textarea{background:var(--raise);border:1px solid var(--line);border-radius:4px;padding:9px 10px;width:100%}
+.field .err{color:var(--red);font-size:12px}
+.ok{grid-column:1 / -1;background:var(--raise);border-left:4px solid var(--gold);padding:10px 12px;border-radius:0 4px 4px 0;font-size:14px}
+
+footer{border-top:1px solid var(--line);padding-block:20px;color:var(--muted);font-size:13px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:4px;font-size:14px;z-index:40}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (prefers-reduced-motion: reduce){.live b{animation:none}.scr .thumb,.media video{transition:none}}
+.credits{margin-top:8px;font-size:12px;line-height:1.6}
+.credits a{color:var(--muted)}
+</style>
+</head>
+<body>
+
+
+<header>
+  <div class="wrap bar">
+    <a class="logo" href="#top"><i></i>Punch TV</a>
+    <nav class="tabs" aria-label="Menu utama">
+      <a class="tab" href="#live" data-tab="live" style="--tc:var(--red)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M6.3 6.3a8 8 0 0 0 0 11.4M17.7 6.3a8 8 0 0 1 0 11.4"/></svg><span>Live</span><span class="cnt" id="cntLive"></span></a>
+      <a class="tab" href="#reels" data-tab="reels" style="--tc:var(--gold)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M10.5 9.5l4 2.5-4 2.5z"/></svg><span>Reels</span></a>
+      <a class="tab" href="#jadwal" data-tab="jadwal" style="--tc:var(--blue)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><span>Jadwal</span></a>
+      <a class="tab" href="#ranking" data-tab="ranking" style="--tc:var(--orange)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3M12 14v3M8.5 20h7M10 17h4"/></svg><span>Ranking</span></a>
+      <a class="tab" href="#sasana" data-tab="sasana" style="--tc:var(--green)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10l9-6 9 6v10H3z"/><path d="M9 20v-6h6v6"/></svg><span>Sasana</span></a>
+      <a class="tab" href="#siarkan" data-tab="siarkan" style="--tc:var(--violet)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="6.5" width="13" height="11" rx="2"/><path d="M15.5 10.5l6-3v9l-6-3"/></svg><span>Siarkan</span></a>
+    </nav>
+    <span class="proto">Prototype · data contoh</span>
+    <a class="btn btn-red cta" href="#siarkan">Siarkan sasanamu</a>
+  </div>
+</header>
+
+<main id="top">
+  <div class="wrap view" id="live" data-view="live" style="--vc:var(--red)">
+    <div class="stage-head">
+      <span class="eyebrow" id="eyebrow">Siaran akbar</span>
+      <h1 id="stTitle">Priangan Fight Night #1</h1>
+      <button class="btn btn-ghost back" type="button" id="backBtn" hidden>Kembali ke siaran akbar</button>
+    </div>
+    <div class="stage">
+      <div>
+        <div class="player" aria-label="Pemutar siaran langsung (cuplikan contoh)">
+          <div class="media" id="mainMedia"><img id="mainImg" alt=""><video id="mainVid" muted loop playsinline preload="none"></video><span class="load">Memuat cuplikan…</span></div>
+          <div class="ov">
+            <div class="ov-top">
+              <span class="live"><b></b>LIVE</span>
+              <span class="chip-gold" id="akbarChip">AKBAR</span>
+              <span class="chip-dark" id="viewers">4.812 menonton</span>
+              <span class="note">Cuplikan contoh · bukan siaran asli</span>
+            </div>
+            <div class="score" id="score">
+              <div class="corner r"><span class="nm" id="nmR"></span><span class="gm" id="gmR"></span></div>
+              <div class="clock"><span class="rd" id="round"></span><span class="t" id="clock"></span></div>
+              <div class="corner b"><span class="nm" id="nmB"></span><span class="gm" id="gmB"></span></div>
+            </div>
+            <div class="strip" id="strip" hidden><span id="stripT"></span><small id="stripS"></small></div>
+          </div>
+          <div class="ctrl"><button type="button" id="pauseBtn">Jeda</button></div>
+        </div>
+        <div class="info">
+          <div class="meta" id="meta"></div>
+          <div class="act">
+            <button class="btn btn-ghost" type="button" id="followLive" aria-pressed="false">Ikuti siaran</button>
+            <button class="btn btn-ghost" type="button" id="shareBtn">Salin tautan</button>
+          </div>
+        </div>
+      </div>
+
+      <aside class="chat" aria-label="Obrolan langsung">
+        <h2><span>Obrolan</span><span id="chatRoom"></span></h2>
+        <div class="msgs" id="msgs" aria-live="polite"></div>
+        <div class="polls" id="polls">
+          <p>Siapa unggul di ronde ini?</p>
+          <div class="pollrow">
+            <button type="button" class="pr" data-vote="r">Sudut Merah</button>
+            <button type="button" class="pb" data-vote="b">Sudut Biru</button>
+          </div>
+          <div class="pollbar"><span id="barR" style="width:54%"></span><span id="barB" style="width:46%"></span></div>
+          <div class="pollnum"><span id="pctR">54%</span><span id="pctB">46%</span></div>
+        </div>
+        <form id="chatForm">
+          <label for="chatIn" class="sr">Pesan</label>
+          <input id="chatIn" maxlength="140" placeholder="Kirim dukungan…" autocomplete="off">
+          <button class="btn btn-red" type="submit">Kirim</button>
+        </form>
+      </aside>
+    </div>
+
+    <div class="wall">
+      <div class="sec-h">
+        <h2>Live sekarang</h2><p id="liveCount"></p>
+        <div class="fgroup" id="wallFilter" role="group" aria-label="Saring cabang"></div>
+      </div>
+      <div class="screens" id="screens"></div>
+    </div>
+  </div>
+
+  <section class="view" id="reels" data-view="reels" style="--vc:var(--gold)" hidden>
+    <div class="wrap">
+      <div class="sec-h">
+        <h2>Reels</h2><p>Unggahan pendek dari atlet, sasana, dan club.</p>
+        <div class="fgroup" id="reelFilter" role="group" aria-label="Saring pengunggah"></div>
+      </div>
+      <div class="reels" id="reelStrip"></div>
+    </div>
+  </section>
+
+  <section class="view" id="jadwal" data-view="jadwal" style="--vc:var(--blue)" hidden>
+    <div class="wrap">
+      <div class="sec-h"><h2>Jadwal pertandingan</h2><p>Saring berdasarkan cabang, kota, dan tingkat.</p></div>
+      <div class="filters">
+        <div class="fgroup" data-f="disc" role="group" aria-label="Cabang"></div>
+        <div class="fgroup" data-f="city" role="group" aria-label="Kota"></div>
+        <div class="fgroup" data-f="tier" role="group" aria-label="Tingkat"></div>
+      </div>
+      <div class="board" id="board"></div>
+    </div>
+  </section>
+
+  <section class="view" id="ranking" data-view="ranking" style="--vc:var(--orange)" hidden>
+    <div class="wrap">
+      <div class="sec-h"><h2>Ranking fighter</h2><p>Peringkat nasional dan regional per cabang dan kelas.</p></div>
+      <div class="rk-controls">
+        <div class="fgroup" id="rkDisc" role="group" aria-label="Cabang"></div>
+        <div class="fgroup" id="rkScope" role="group" aria-label="Cakupan"></div>
+      </div>
+      <div class="rk-classes">
+        <span class="rk-lbl">Kelas</span>
+        <div class="fgroup" id="rkClass" role="group" aria-label="Kelas"></div>
+      </div>
+      <p class="rk-meta" id="rkMeta"></p>
+      <div class="podium" id="rkPodium"></div>
+      <div class="rk-wrap"><table class="rk-table" id="rkTable"></table></div>
+      <div class="rk-note">
+        <h3>Cara poin dihitung (usulan)</h3>
+        <ul>
+          <li>Menang di laga lokal +10, regional +25, nasional +50 poin.</li>
+          <li>Menang KO/RSC (muaythai, kickboxing) atau selisih poin besar (taekwondo, karate) +5 poin.</li>
+          <li>Poin berkurang 25% bila atlet tidak bertanding selama 6 bulan.</li>
+          <li>Ranking regional menghitung atlet yang terdaftar di sasana atau UKM kota tersebut.</li>
+        </ul>
+        <p>Semua nama dan angka di halaman ini adalah contoh untuk prototype.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="view" id="sasana" data-view="sasana" style="--vc:var(--green)" hidden>
+    <div class="wrap">
+      <div class="sec-h"><h2>Kanal sasana &amp; UKM</h2><p>Latihan, sparring, dan pertandingan langsung dari tempatnya.</p></div>
+      <div class="chans" id="chans"></div>
+    </div>
+  </section>
+
+
+  <section class="view" id="siarkan" data-view="siarkan" style="--vc:var(--violet)" hidden>
+    <div class="wrap broadcast">
+      <div>
+        <div class="sec-h"><h2>Siarkan sasanamu</h2></div>
+        <p>Punya sasana atau UKM bela diri tapi belum punya panggung? Daftarkan kanal dan mulai siarkan latihan atau pertandinganmu.</p>
+        <ul>
+          <li>Cukup kamera HP dan koneksi stabil untuk siaran lokal.</li>
+          <li>Event regional dibantu tim produksi Punch TV di kotamu.</li>
+          <li>Unggah reels latihan dan highlight langsung dari kanalmu.</li>
+        </ul>
+      </div>
+      <form class="apply" id="applyForm" novalidate>
+        <div class="field full"><label for="fName">Nama sasana / UKM</label><input id="fName" required placeholder="mis. UKM Karate Universitas Siliwangi"><span class="err" id="eName"></span></div>
+        <div class="field"><label for="fDisc">Cabang</label><select id="fDisc"><option>Muaythai</option><option>Taekwondo</option><option>Kickboxing</option><option>Karate</option></select></div>
+        <div class="field"><label for="fCity">Kota</label><select id="fCity"><option>Tasikmalaya</option><option>Bandung</option><option>Jakarta</option><option>Kota lain</option></select></div>
+        <div class="field"><label for="fType">Jenis</label><select id="fType"><option>Sasana / gym</option><option>UKM kampus</option><option>Atlet perorangan</option><option>Penyelenggara event</option></select></div>
+        <div class="field"><label for="fWa">No. WhatsApp</label><input id="fWa" inputmode="tel" placeholder="08xxxxxxxxxx"><span class="err" id="eWa"></span></div>
+        <div class="field full"><label for="fNote">Yang ingin disiarkan</label><textarea id="fNote" rows="3" placeholder="mis. sparring Sabtu sore, turnamen internal Desember"></textarea></div>
+        <div class="field full"><button class="btn btn-red" type="submit">Kirim pendaftaran</button></div>
+        <div class="ok" id="okMsg" hidden></div>
+      </form>
+    </div>
+    <div class="wrap sub-sec">
+      <div class="sec-h"><h2>Tiga lapis panggung</h2></div>
+      <div class="tiers">
+        <div class="tier lo"><h3>Lokal</h3><p>Latihan rutin, sparring antar-sasana, dan turnamen internal kampus. Siapa pun bisa siaran.</p></div>
+        <div class="tier re"><h3>Regional</h3><p>Fight night kota dan liga antar-UKM di Tasikmalaya, Bandung, dan Jakarta, dikurasi Punch TV.</p></div>
+        <div class="tier n"><h3>Nasional</h3><p>Partai utama dan kejuaraan dengan produksi penuh, komentator, dan tayangan ulang.</p></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer><div class="wrap">Punch TV · prototype antarmuka. Semua nama atlet, sasana, jadwal, dan angka penonton adalah data contoh. Orang di video bukan atlet yang namanya tertera.
+<div class="credits">Cuplikan video dari Pexels (lisensi Pexels), di antaranya karya Mika Mark, cottonbro studio, dan Jirada Poonsawad: <a href="https://www.pexels.com/video/intense-competitive-boxing-match-in-arena-31000668/" target="_blank" rel="noopener">#31000668</a>, <a href="https://www.pexels.com/video/two-men-sparring-in-kick-boxing-4761806/" target="_blank" rel="noopener">#4761806</a>, <a href="https://www.pexels.com/video/dynamic-taekwondo-training-session-in-gym-32055676/" target="_blank" rel="noopener">#32055676</a>, <a href="https://www.pexels.com/video/men-sparring-in-the-gym-6296492/" target="_blank" rel="noopener">#6296492</a>, <a href="https://www.pexels.com/video/a-trainer-training-a-man-on-how-to-kickbox-6637250/" target="_blank" rel="noopener">#6637250</a>, <a href="https://www.pexels.com/video/a-group-of-people-in-white-and-black-are-practicing-karate-4441001/" target="_blank" rel="noopener">#4441001</a>, <a href="https://www.pexels.com/video/male-boxer-practicing-on-punching-bag-5752365/" target="_blank" rel="noopener">#5752365</a>, <a href="https://www.pexels.com/video/woman-practicing-muay-thai-7987254/" target="_blank" rel="noopener">#7987254</a>, <a href="https://www.pexels.com/video/girl-doing-a-taekwondo-6005327/" target="_blank" rel="noopener">#6005327</a>, <a href="https://www.pexels.com/video/men-practicing-martial-arts-7045280/" target="_blank" rel="noopener">#7045280</a>, <a href="https://www.pexels.com/video/man-practicing-martial-arts-7045281/" target="_blank" rel="noopener">#7045281</a>, <a href="https://www.pexels.com/video/a-man-training-his-kickboxing-skills-5752380/" target="_blank" rel="noopener">#5752380</a>, <a href="https://www.pexels.com/video/a-man-throwing-knee-at-the-punching-bag-7987222/" target="_blank" rel="noopener">#7987222</a>, <a href="https://www.pexels.com/video/people-kickboxing-in-a-ring-5752182/" target="_blank" rel="noopener">#5752182</a>, <a href="https://www.pexels.com/video/a-man-breaking-a-piece-of-wood-by-his-hand-8042125/" target="_blank" rel="noopener">#8042125</a>, <a href="https://www.pexels.com/video/man-practicing-muay-thai-7989824/" target="_blank" rel="noopener">#7989824</a>.</div></div></footer>
+
+<div class="rv" id="rv" hidden role="dialog" aria-modal="true" aria-label="Pemutar reels">
+  <button class="rv-close" type="button" id="rvClose" aria-label="Tutup reels">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
+  <div class="rv-frame" id="rvFrame">
+    <div class="media" id="rvMedia"><img id="rvImg" alt=""><video id="rvVid" muted loop playsinline preload="none"></video></div>
+    <div class="rv-prog"><span id="rvBar"></span></div>
+    <div class="rv-paused" id="rvPaused" hidden>DIJEDA · KETUK UNTUK LANJUT</div>
+    <div class="rv-cap">
+      <div class="rv-who"><span class="ava" id="rvAva"></span><span id="rvName"></span><span class="kind" id="rvKind"></span><button class="rv-follow" type="button" id="rvFollow">Ikuti</button></div>
+      <p id="rvText"></p>
+      <span class="aud" id="rvAud"></span>
+    </div>
+    <div class="rv-side">
+      <button type="button" id="rvLike" aria-pressed="false" aria-label="Suka"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7.5-4.6-9.3-9.4C1.4 8 3.6 4.5 7.2 4.5c2 0 3.5 1.1 4.8 2.8 1.3-1.7 2.8-2.8 4.8-2.8 3.6 0 5.8 3.5 4.5 7.1C19.5 16.4 12 21 12 21z"/></svg><span id="rvLikes"></span></button>
+      <button type="button" id="rvCom" aria-label="Komentar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v11H9l-5 4z"/></svg><span id="rvComs"></span></button>
+      <button type="button" id="rvShare" aria-label="Bagikan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4l7 7-7 7M21 11H9a6 6 0 0 0-6 6v1"/></svg><span>Bagi</span></button>
+    </div>
+  </div>
+  <div class="rv-nav">
+    <button type="button" id="rvPrev" aria-label="Reels sebelumnya"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 15l6-6 6 6"/></svg></button>
+    <div class="rv-count" id="rvCount"></div>
+    <button type="button" id="rvNext" aria-label="Reels berikutnya"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></button>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function(){
+  const $=s=>document.querySelector(s);
+  const toast=t=>{const el=$('#toast');el.textContent=t;el.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>el.hidden=true,2200);};
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const fmtN=n=>n>=1000?(n/1000).toLocaleString('id-ID',{maximumFractionDigits:1})+' rb':String(n);
+  const initials=n=>n.replace(/["']/g,'').split(' ').filter(w=>/^[A-Z]/.test(w)).slice(0,2).map(w=>w[0]).join('');
+
+  /* ================= Media: photo thumbnail -> video clip ================= */
+  const probe=document.createElement('video');
+  const EXT=probe.canPlayType('video/mp4; codecs="avc1.4D401E"')?'mp4':(probe.canPlayType('video/webm; codecs="vp9"')?'webm':'mp4');
+  const M=id=>({img:'media/'+id+'.jpg',vid:'media/'+id+'.'+EXT});
+  // box: .media element containing img + video. Shows the photo, then after `delay` swaps to the clip.
+  function mediaCtl(box,{autoplay=true}={}){
+    const img=box.querySelector('img'), vid=box.querySelector('video');
+    const c={id:null,timer:null,visible:true,started:false,paused:false};
+    vid.addEventListener('playing',()=>box.classList.add('on'));
+    vid.addEventListener('error',()=>box.classList.remove('on'));
+    c.set=(id,delay)=>{
+      clearTimeout(c.timer); box.classList.remove('on'); c.started=false;
+      vid.pause(); vid.removeAttribute('src'); vid.load();
+      c.id=id; img.src=M(id).img;
+      if(!autoplay) return;
+      c.timer=setTimeout(c.start,delay);
+    };
+    c.start=()=>{ if(!c.id) return; c.started=true; if(!vid.getAttribute('src')){vid.src=M(c.id).vid;} if(c.visible&&!c.paused){const pr=vid.play();if(pr)pr.catch(()=>{});} };
+    c.pause=()=>{c.paused=true;vid.pause();};
+    c.resume=()=>{c.paused=false;if(c.started&&c.visible){const pr=vid.play();if(pr)pr.catch(()=>{});}};
+    c.setVisible=v=>{c.visible=v;if(!c.started)return;if(v&&!c.paused){const pr=vid.play();if(pr)pr.catch(()=>{});}else vid.pause();};
+    c.stop=()=>{clearTimeout(c.timer);vid.pause();};
+    return c;
+  }
+  const ctls=new Map();
+  const io='IntersectionObserver' in window?new IntersectionObserver(es=>es.forEach(e=>{const c=ctls.get(e.target);if(c)c.setVisible(e.isIntersecting);}),{rootMargin:'80px'}):null;
+  function watch(box,c){ctls.set(box,c);if(io)io.observe(box);}
+  function unwatch(box){const c=ctls.get(box);if(c)c.stop();if(io)io.unobserve(box);ctls.delete(box);}
+  const THUMB_MS=reduce?0:2600;
+  let mainPaused=false;
+
+  /* ================= Live streams ================= */
+  const streams=[
+    {id:'s1',akbar:true,title:'Priangan Fight Night #1',disc:'Muaythai',tier:'Regional',city:'Tasikmalaya',venue:'GOR Sukapura',cls:'Kelas 60 kg',k:'ring',bg:'#3a3350',v:4812,
+      r:'Raka "Petir" Saputra',rg:'Sasana Galunggung · Tasikmalaya',b:'Dimas Arya',bgym:'UKM Muaythai Unpad · Bandung',round:2,secs:134},
+    {id:'s2',title:'Jakarta Kick Series',disc:'Kickboxing',tier:'Regional',city:'Jakarta',venue:'Gelanggang Remaja Kuningan',cls:'Kelas 70 kg',k:'ring',bg:'#2f3a52',v:1120,
+      r:'Bayu Prakoso',rg:'Kuningan Kickboxing Club',b:'Kevin Halim',bgym:'Tebet Fight Gym',round:1,secs:71},
+    {id:'s3',title:'Turnamen Internal UKM Taekwondo ITB',disc:'Taekwondo',tier:'Lokal',city:'Bandung',venue:'GOR Pajajaran',cls:'-68 kg putra',k:'mat',bg:'#2b3a4a',v:342,
+      r:'Rizal Hakim',rg:'UKM Taekwondo ITB',b:'Daffa Pratama',bgym:'UKM Taekwondo ITB',round:2,secs:40,rmax:3,rlen:120},
+    {id:'s5',title:'Sparring Anggota Baru',disc:'Muaythai',tier:'Lokal',city:'Bandung',venue:'Sekretariat UKM',cls:'Sparring ringan',k:'ring',bg:'#283846',v:210,
+      r:'Yoga Pratama',rg:'UKM Muaythai Unpad',b:'Fajar Ramdani',bgym:'UKM Muaythai Unpad',round:1,secs:150,rlen:120},
+    {id:'s6',title:'Latihan Sore Kuningan Kickboxing Club',disc:'Kickboxing',tier:'Lokal',city:'Jakarta',venue:'Kuningan Kickboxing Club',cls:'Pad work',k:'pads',bg:'#3a3030',v:96,host:'Kuningan Kickboxing Club'},
+    {id:'s7',title:'Kata Beregu · Persiapan Kenaikan Sabuk',disc:'Karate',tier:'Lokal',city:'Jakarta',venue:'Dojo Rawamangun',cls:'Kata',k:'kata',bg:'#3a3328',v:64,host:'Rawamangun Karate'}
+  ];
+  streams.forEach(s=>{if(s.r){s.rmax=s.rmax||3;s.rlen=s.rlen||180;s.rest=false;}});
+  const byId=id=>streams.find(s=>s.id===id);
+  let cur=byId('s1');
+  const mainCtl=mediaCtl($('#mainMedia')); watch($('#mainMedia'),mainCtl);
+  const fmtT=s=>Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+  const roundLabel=s=>s.rest?'Istirahat':`Ronde ${s.round} / ${s.rmax}`;
+
+
+  function renderMain(){
+    $('#eyebrow').textContent=cur.akbar?'Siaran akbar':'Kamu menonton';
+    $('#eyebrow').classList.toggle('watch',!cur.akbar);
+    $('#stTitle').textContent=cur.title;
+    $('#backBtn').hidden=!!cur.akbar;
+    $('#akbarChip').hidden=!cur.akbar;
+    const bout=!!cur.r;
+    $('#score').hidden=!bout; $('#strip').hidden=bout; $('#polls').hidden=!bout;
+    if(bout){
+      $('#nmR').textContent=cur.r;$('#gmR').textContent=cur.rg;$('#nmB').textContent=cur.b;$('#gmB').textContent=cur.bgym;
+      $('#round').textContent=roundLabel(cur);$('#clock').textContent=fmtT(cur.secs);
+    }else{
+      $('#stripT').textContent=cur.cls;$('#stripS').textContent=cur.host+' · '+cur.city;
+    }
+    $('#viewers').textContent=cur.v.toLocaleString('id-ID')+' menonton';
+    const meta=$('#meta');meta.innerHTML='';
+    [cur.disc,cur.cls,cur.tier,cur.venue+', '+cur.city].forEach(x=>{const s=document.createElement('span');s.className='tag';s.textContent=x;meta.append(s);});
+    $('#chatRoom').textContent=cur.title;
+    const fl=$('#followLive');fl.setAttribute('aria-pressed','false');fl.textContent='Ikuti siaran';
+    document.querySelectorAll('.scr').forEach(b=>{const on=b.dataset.id===cur.id;b.setAttribute('aria-current',on);b.querySelector('.now').hidden=!on;});
+  }
+  function selectStream(id,scroll){
+    if(scroll) showView('live');
+    if(cur.id===id) return;
+    cur=byId(id); voted=false; vr=50+Math.round(Math.random()*10); vb=100-vr; paintPoll();
+    msgs.innerHTML=''; addSys(`Kamu masuk ke obrolan ${cur.title}.`); seedChat();
+    mainPaused=false; $('#pauseBtn').textContent='Jeda'; mainCtl.paused=false;
+    renderMain(); mainCtl.set(cur.id,THUMB_MS);
+  }
+  $('#backBtn').onclick=()=>selectStream('s1',false);
+
+  /* wall of screens */
+  const discs=['Semua','Muaythai','Taekwondo','Kickboxing','Karate'];
+  let wallSel=0;
+  function chips(el,list,onPick){
+    list.forEach((o,i)=>{const b=document.createElement('button');b.type='button';b.textContent=o;b.setAttribute('aria-pressed',i===0);
+      b.onclick=()=>{el.querySelectorAll('button').forEach((x,j)=>x.setAttribute('aria-pressed',j===i));onPick(i);};el.append(b);});
+  }
+  chips($('#wallFilter'),discs,i=>{wallSel=i;renderWall();});
+  function renderWall(){
+    const box=$('#screens');
+    box.querySelectorAll('.media').forEach(unwatch);
+    box.innerHTML='';
+    const list=streams.filter(s=>!wallSel||s.disc===discs[wallSel]).sort((a,b)=>(b.akbar?1:0)-(a.akbar?1:0)||b.v-a.v);
+    $('#liveCount').textContent=`${streams.length} siaran berlangsung · pilih untuk ditonton`;
+    if(!list.length){box.innerHTML='<p class="empty">Belum ada siaran live untuk cabang ini.</p>';return;}
+    list.forEach((s,i)=>{
+      const b=document.createElement('button');b.type='button';b.className='scr';b.dataset.id=s.id;
+      b.innerHTML=`<div class="thumb"><div class="media"><img alt="" loading="lazy"><video muted loop playsinline preload="none"></video></div><div class="tl"><span class="live"><b></b>LIVE</span>${s.akbar?'<span class="chip-gold">AKBAR</span>':''}<span class="chip-dark v"></span></div><span class="chip-dark br"></span><div class="now" hidden>Sedang ditonton</div></div><div class="ttl"></div><div class="sub"></div>`;
+      b.querySelector('.ttl').textContent=s.title;
+      b.querySelector('.sub').textContent=`${s.disc} · ${s.city} · ${s.tier}`;
+      b.querySelector('.v').textContent=fmtN(s.v);
+      b.querySelector('.br').textContent=s.r?`R${s.round} · ${fmtT(s.secs)}`:'Latihan';
+      b.setAttribute('aria-label',`Tonton ${s.title}`);
+      b.onclick=()=>selectStream(s.id,true);
+      box.append(b);
+      const mb=b.querySelector('.media'),mc=mediaCtl(mb,{autoplay:!reduce});watch(mb,mc);mc.set(s.id,THUMB_MS+800+i*700);
+    });
+    renderMain();
+  }
+
+  /* clocks + viewers for every stream */
+  setInterval(()=>{
+    streams.forEach(s=>{
+      if(s.r && !(s===cur&&mainPaused)){
+        s.secs--;
+        if(s.secs<0){
+          if(s.rest){s.rest=false;s.round=s.round>=s.rmax?1:s.round+1;s.secs=s.rlen;if(s===cur)addSys(`Ronde ${s.round} dimulai.`);}
+          else{s.rest=true;s.secs=60;if(s===cur)addSys(`Akhir ronde ${s.round}. Istirahat 1 menit.`);}
+        }
+      }
+      if(Math.random()<.3) s.v=Math.max(20,s.v+Math.round((Math.random()-.42)*Math.max(4,s.v*.01)));
+    });
+    if(cur.r){$('#round').textContent=roundLabel(cur);$('#clock').textContent=fmtT(cur.secs);}
+    $('#viewers').textContent=cur.v.toLocaleString('id-ID')+' menonton';
+    document.querySelectorAll('.scr').forEach(b=>{const s=byId(b.dataset.id);b.querySelector('.v').textContent=fmtN(s.v);if(s.r)b.querySelector('.br').textContent=s.rest?'Istirahat':`R${s.round} · ${fmtT(s.secs)}`;});
+  },1000);
+  $('#pauseBtn').onclick=()=>{mainPaused=!mainPaused;$('#pauseBtn').textContent=mainPaused?'Putar':'Jeda';mainPaused?mainCtl.pause():(mainCtl.resume(),mainCtl.started||mainCtl.start());};
+
+  /* chat */
+  const msgs=$('#msgs');
+  const users=[['ujang_tsm','r'],['nengsari','b'],['coach_herman','g'],['arif.kick','r'],['dewi_tkd','b'],['bimo99','r'],['ukm_unpad','b'],['rizky.gym','g']];
+  const fightLines=['Jab-nya rapi banget','Tendangan body-nya masuk!','Ayo tekan terus','Clinch-nya kuat ya si biru','Bandung hadir','Wasit cepat pisahin','Teknik sweep tadi mantap','Ronde ini tipis','Kapan event di Jakarta?','Semangat sudut merah!','Kick ke kaki makin sering','Footwork-nya enak dilihat'];
+  const trainLines=['Coach, itu kombinasi apa namanya?','Semangat latihannya!','Kapan buka kelas pemula?','Kuda-kudanya mantap','Ikut latihan Sabtu bisa?','Mantap konsisten tiap sore','Salam dari Tasik','Kiai-nya kenceng'];
+  const lines=()=>cur.r?fightLines:trainLines;
+  function addMsg(u,c,txt){
+    const d=document.createElement('div');d.className='msg';
+    const s=document.createElement('span');s.className='u '+c;s.textContent=u;
+    d.append(s,document.createTextNode(txt));msgs.append(d);
+    while(msgs.children.length>60)msgs.firstChild.remove();msgs.scrollTop=msgs.scrollHeight;
+  }
+  function addSys(txt){const d=document.createElement('div');d.className='msg sys';d.textContent=txt;msgs.append(d);msgs.scrollTop=msgs.scrollHeight;}
+  function seedChat(){const L=lines();for(let i=0;i<6;i++){const[u,c]=users[(i*3)%users.length];addMsg(u,c,L[i%L.length]);}}
+  addSys('Selamat datang di siaran Priangan Fight Night #1. Jaga sportivitas di obrolan.');seedChat();
+  setInterval(()=>{if(mainPaused)return;const[u,c]=users[Math.random()*users.length|0];const L=lines();addMsg(u,c,L[Math.random()*L.length|0]);},2600);
+  $('#chatForm').addEventListener('submit',e=>{e.preventDefault();const v=$('#chatIn').value.trim();if(!v)return;addMsg('kamu','g',v);$('#chatIn').value='';});
+
+  /* poll */
+  let vr=54,vb=46,voted=false;
+  function paintPoll(){const pr=Math.round(vr/(vr+vb)*100);$('#barR').style.width=pr+'%';$('#barB').style.width=(100-pr)+'%';$('#pctR').textContent=pr+'%';$('#pctB').textContent=(100-pr)+'%';}
+  document.querySelectorAll('[data-vote]').forEach(b=>b.onclick=()=>{
+    if(voted){toast('Kamu sudah memilih di siaran ini');return;}
+    voted=true;b.dataset.vote==='r'?vr+=3:vb+=3;paintPoll();toast('Pilihanmu tercatat');
+  });
+  $('#followLive').onclick=e=>{const b=e.currentTarget,on=b.getAttribute('aria-pressed')!=='true';b.setAttribute('aria-pressed',on);b.textContent=on?'Diikuti ✓':'Ikuti siaran';};
+  async function copyLink(){try{await navigator.clipboard.writeText(location.href);toast('Tautan disalin');}catch(_){toast('Salin tautan dari bilah alamat');}}
+  $('#shareBtn').onclick=copyLink;
+
+  renderWall();
+  mainCtl.set(cur.id,THUMB_MS);
+
+  /* ================= Reels ================= */
+  const reels=[
+    {a:'Raka "Petir" Saputra',t:'Atlet',d:'Muaythai',cap:'Kombinasi teep + low kick yang saya pakai di ronde 2 kemarin.',k:'bag',bg:'#40273a',likes:1240,com:86,views:12400,col:'#c8322a'},
+    {a:'Sasana Galunggung',t:'Sasana',d:'Muaythai',cap:'Pad work pagi, 5 ronde x 3 menit sebelum Fight Night.',k:'pads',bg:'#3a2c2c',likes:980,com:41,views:8700,col:'#8a2c24'},
+    {a:'Salsa Nurfadila',t:'Atlet',d:'Taekwondo',cap:'Latihan kuda-kuda dan tendangan dasar tiap pagi. Hari ke-12.',k:'kick',bg:'#26364a',likes:2310,com:154,views:21900,col:'#2a62c4'},
+    {a:'UKM Taekwondo ITB',t:'Club',d:'Taekwondo',cap:'Sparring internal jelang turnamen. Siapa jagoanmu?',k:'mat',bg:'#2b3a4a',likes:640,com:72,views:5200,col:'#1f7a5c'},
+    {a:'Dojo Cempaka',t:'Sasana',d:'Karate',cap:'Gerakan dasar tsuki untuk kelas pemula, pelan dulu baru cepat.',k:'kata',bg:'#3a3328',likes:410,com:18,views:3100,col:'#8a5a00'},
+    {a:'Kuningan Kickboxing Club',t:'Club',d:'Kickboxing',cap:'Drill jab-cross-hook 3 menit tanpa henti. Coba di rumah.',k:'pads',bg:'#3a3030',likes:1870,com:95,views:16800,col:'#5b3fa8'},
+    {a:'Bayu Prakoso',t:'Atlet',d:'Kickboxing',cap:'Dua minggu lagi Jakarta Kick Series. Berat badan aman.',k:'bag',bg:'#2f3a52',likes:1530,com:120,views:14100,col:'#3d5aa8'},
+    {a:'UKM Muaythai Unpad',t:'Club',d:'Muaythai',cap:'Shadow boxing di ring sebelum sparring angkatan baru.',k:'ring',bg:'#283846',v:0,likes:720,com:39,views:6400,col:'#2a62c4'},
+    {a:'Nadia Putri',t:'Atlet',d:'Karate',cap:'Tameshiwari: mematahkan papan dengan tangan kosong.',k:'mat',bg:'#3a2f2f',likes:890,com:47,views:7300,col:'#a3363f'},
+    {a:'Tebet Fight Gym',t:'Sasana',d:'Muaythai',cap:'Teep dan tendangan memutar ke heavy bag, 3 ronde.',k:'kata',bg:'#3a3328',likes:560,com:64,views:4200,col:'#a3363f'}
+  ];
+  reels.forEach((r,i)=>{r.liked=false;r.followed=false;r.mid='r'+(i+1);});
+  const kinds=['Semua','Atlet','Sasana','Club'];
+  let reelSel=0, reelList=reels.slice();
+  chips($('#reelFilter'),kinds,i=>{reelSel=i;renderReels();});
+  function renderReels(){
+    const box=$('#reelStrip');box.querySelectorAll('.media').forEach(unwatch);box.innerHTML='';
+    reelList=reels.filter(r=>!reelSel||r.t===kinds[reelSel]);
+    if(!reelList.length){box.innerHTML='<p class="reels-empty">Belum ada reels.</p>';return;}
+    reelList.forEach((r,i)=>{
+      const b=document.createElement('button');b.type='button';b.className='reel';
+      b.innerHTML=`<div class="media"><img alt="" loading="lazy"><video muted loop playsinline preload="none"></video></div><span class="views"></span><div class="shade"><div class="who"><span></span><span class="kind"></span></div><div class="cap"></div></div>`;
+      b.querySelector('.views').textContent='▶ '+fmtN(r.views);
+      b.querySelector('.who span').textContent=r.a;
+      b.querySelector('.kind').textContent=r.t;
+      b.querySelector('.cap').textContent=r.cap;
+      b.setAttribute('aria-label',`Putar reels dari ${r.a}: ${r.cap}`);
+      b.onclick=()=>openRv(i,b);
+      box.append(b);
+      const mb=b.querySelector('.media'),mc=mediaCtl(mb,{autoplay:!reduce});watch(mb,mc);mc.set(r.mid,THUMB_MS+1500+i*600);
+    });
+  }
+  renderReels();
+
+  /* viewer */
+  const rv=$('#rv'), DUR=9;
+  let ri=0, rvT=0, rvPaused=false, rvLast=0, opener=null;
+  const rvCtl=mediaCtl($('#rvMedia'));
+  function fillRv(){
+    const r=reelList[ri];
+    const ava=$('#rvAva');ava.textContent=initials(r.a);ava.style.background=r.col;
+    $('#rvName').textContent=r.a;$('#rvKind').textContent=r.t;$('#rvText').textContent=r.cap;
+    $('#rvAud').textContent='♪ Audio asli · '+r.a+' · '+r.d;
+    $('#rvLikes').textContent=fmtN(r.likes+(r.liked?1:0));$('#rvLike').setAttribute('aria-pressed',r.liked);
+    $('#rvComs').textContent=fmtN(r.com);
+    $('#rvFollow').textContent=r.followed?'Diikuti':'Ikuti';
+    $('#rvCount').textContent=(ri+1)+' / '+reelList.length;
+    $('#rvPrev').disabled=ri===0;$('#rvNext').disabled=ri===reelList.length-1;
+    rvT=0;rvPaused=false;$('#rvPaused').hidden=true;rvCtl.paused=false;rvCtl.set(r.mid,reduce?0:1200);
+  }
+  function openRv(i,btn){
+    ri=i;opener=btn;rv.hidden=false;document.documentElement.style.overflow='hidden';
+    fillRv();rvLast=performance.now();requestAnimationFrame(tick);$('#rvClose').focus();
+  }
+  function closeRv(){rv.hidden=true;rvCtl.stop();document.documentElement.style.overflow='';if(opener)opener.focus();}
+  function go(dir){const n=ri+dir;if(n<0||n>=reelList.length){if(dir>0)closeRv();return;}ri=n;fillRv();}
+  function tick(now){
+    if(rv.hidden)return;
+    const dt=(now-rvLast)/1000;rvLast=now;
+    if(!rvPaused){rvT+=dt;if(rvT>=DUR){go(1);if(rv.hidden)return;}}
+    $('#rvBar').style.width=Math.min(100,rvT/DUR*100)+'%';
+    requestAnimationFrame(tick);
+  }
+  function togglePause(){rvPaused=!rvPaused;$('#rvPaused').hidden=!rvPaused;rvPaused?rvCtl.pause():rvCtl.resume();}
+  $('#rvClose').onclick=closeRv;
+  $('#rvPrev').onclick=()=>go(-1);$('#rvNext').onclick=()=>go(1);
+  $('#rvFrame').addEventListener('click',e=>{if(e.target.closest('button'))return;togglePause();});
+  $('#rvLike').onclick=()=>{const r=reelList[ri];r.liked=!r.liked;$('#rvLike').setAttribute('aria-pressed',r.liked);$('#rvLikes').textContent=fmtN(r.likes+(r.liked?1:0));};
+  $('#rvCom').onclick=()=>toast('Kolom komentar belum tersedia di prototype');
+  $('#rvShare').onclick=copyLink;
+  $('#rvFollow').onclick=()=>{const r=reelList[ri];r.followed=!r.followed;$('#rvFollow').textContent=r.followed?'Diikuti':'Ikuti';};
+  rv.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){closeRv();}
+    else if(e.key==='ArrowDown'){e.preventDefault();go(1);}
+    else if(e.key==='ArrowUp'){e.preventDefault();go(-1);}
+    else if(e.key===' '&&!e.target.closest('button')){e.preventDefault();togglePause();}
+    else if(e.key==='Tab'){const f=[...rv.querySelectorAll('button:not(:disabled)')].filter(x=>x.offsetParent);const a=f[0],z=f[f.length-1];
+      if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus();}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus();}}
+  });
+  let ty=null;
+  rv.addEventListener('touchstart',e=>{ty=e.touches[0].clientY;},{passive:true});
+  rv.addEventListener('touchend',e=>{if(ty===null)return;const dy=e.changedTouches[0].clientY-ty;ty=null;if(Math.abs(dy)>50)go(dy<0?1:-1);});
+  let wheelLock=0;
+  rv.addEventListener('wheel',e=>{e.preventDefault();const n=Date.now();if(n-wheelLock<600||Math.abs(e.deltaY)<20)return;wheelLock=n;go(e.deltaY>0?1:-1);},{passive:false});
+
+  /* ================= Schedule ================= */
+  const events=[
+    {d:'Hari ini',time:'',disc:'Muaythai',city:'Tasikmalaya',tier:'Regional',r:'Raka Saputra',b:'Dimas Arya',ev:'Priangan Fight Night #1 · 60 kg',venue:'GOR Sukapura',live:'s1'},
+    {d:'Hari ini',time:'',disc:'Kickboxing',city:'Jakarta',tier:'Regional',r:'Bayu Prakoso',b:'Kevin Halim',ev:'Jakarta Kick Series · 70 kg',venue:'Gelanggang Remaja Kuningan',live:'s2'},
+    {d:'Sab 29 Nov',time:'19.30',disc:'Muaythai',city:'Bandung',tier:'Regional',r:'Fajar Ramdani',b:'Yoga Pratama',ev:'Liga Antar-Kampus Pekan 1 · 63,5 kg',venue:'Sasana Dago'},
+    {d:'Min 30 Nov',time:'14.00',disc:'Taekwondo',city:'Bandung',tier:'Lokal',r:'Salsa Nurfadila',b:'Intan Permata',ev:'Final turnamen internal · -49 kg',venue:'GOR Pajajaran'},
+    {d:'Sab 6 Des',time:'15.00',disc:'Karate',city:'Jakarta',tier:'Lokal',r:'Nadia Putri',b:'Rina Kartika',ev:'Kejuaraan internal · kumite',venue:'Dojo Rawamangun'},
+    {d:'Sab 13 Des',time:'19.00',disc:'Taekwondo',city:'Jakarta',tier:'Nasional',r:'Andika Wibowo',b:'Rio Firmansyah',ev:'Punch TV Showcase · -68 kg',venue:'Jakarta (TBA)'},
+    {d:'Min 14 Des',time:'10.00',disc:'Kickboxing',city:'Tasikmalaya',tier:'Lokal',r:'Kelas pemula',b:'',ev:'Latihan terbuka Sasana Galunggung',venue:'Sasana Galunggung'}
+  ];
+  const opts={disc:['Semua','Muaythai','Taekwondo','Kickboxing','Karate'],city:['Semua kota','Tasikmalaya','Bandung','Jakarta'],tier:['Semua tingkat','Nasional','Regional','Lokal']};
+  const sel={disc:0,city:0,tier:0};
+  document.querySelectorAll('.filters .fgroup').forEach(g=>{const k=g.dataset.f;chips(g,opts[k],i=>{sel[k]=i;renderBoard();});});
+  function renderBoard(){
+    const list=events.filter(e=>(!sel.disc||e.disc===opts.disc[sel.disc])&&(!sel.city||e.city===opts.city[sel.city])&&(!sel.tier||e.tier===opts.tier[sel.tier]));
+    const bd=$('#board');bd.innerHTML='';
+    if(!list.length){bd.innerHTML='<div class="empty">Belum ada jadwal untuk pilihan ini. Coba kota atau cabang lain.</div>';return;}
+    list.forEach(e=>{
+      const row=document.createElement('div');row.className='row';
+      row.innerHTML=`<div class="when">${e.live?'<span class="state-live">● LIVE</span>':e.time+' WIB'}<small></small></div>
+        <div class="bout"><div class="vs"><span class="r"></span>${e.b?'<em>vs</em><span class="b"></span>':''}</div><div class="ev"></div></div>
+        <div class="where"></div>
+        <button class="btn ${e.live?'btn-red':'btn-ghost'}" type="button">${e.live?'Tonton':'Ingatkan'}</button>`;
+      row.querySelector('small').textContent=e.d;
+      row.querySelector('.vs .r').textContent=e.r;if(e.b)row.querySelector('.vs .b').textContent=e.b;
+      row.querySelector('.ev').textContent=`${e.disc} · ${e.ev}`;
+      row.querySelector('.where').textContent=`${e.venue}, ${e.city} · ${e.tier}`;
+      row.querySelector('button').onclick=ev=>{
+        if(e.live){selectStream(e.live,true);return;}
+        const b=ev.currentTarget,on=b.textContent==='Ingatkan';b.textContent=on?'Diingatkan ✓':'Ingatkan';toast(on?'Pengingat dipasang (simulasi)':'Pengingat dibatalkan');
+      };
+      bd.append(row);
+    });
+  }
+  renderBoard();
+
+  /* ================= Ranking ================= */
+  const RK={
+    Muaythai:{rec:'kds',classes:['54 kg','57 kg','60 kg','63,5 kg','67 kg','71 kg','Putri 51 kg','Putri 57 kg']},
+    Kickboxing:{rec:'kds',classes:['-57 kg','-63,5 kg','-67 kg','-71 kg','-75 kg','Putri -56 kg','Putri -60 kg']},
+    Taekwondo:{rec:'mk',classes:['Putra -58 kg','Putra -68 kg','Putra -80 kg','Putri -49 kg','Putri -57 kg','Putri -67 kg']},
+    Karate:{rec:'mk',classes:['Kumite -60 kg','Kumite -67 kg','Kumite -75 kg','Kumite putri -50 kg','Kumite putri -55 kg','Kumite putri -61 kg']}
+  };
+  const GYMS=[
+    ['Sasana Galunggung','Tasikmalaya','Muaythai Kickboxing'],['Sukapura Fight Club','Tasikmalaya','Muaythai Kickboxing'],
+    ['Dojo Cempaka','Tasikmalaya','Karate'],['UKM Karate Unsil','Tasikmalaya','Karate'],['UKM Taekwondo Unsil','Tasikmalaya','Taekwondo'],
+    ['UKM Muaythai Unpad','Bandung','Muaythai'],['Sasana Dago','Bandung','Muaythai Kickboxing'],['Braga Kickboxing','Bandung','Kickboxing'],
+    ['UKM Taekwondo ITB','Bandung','Taekwondo'],['Dojo Cihampelas','Bandung','Karate'],
+    ['Kuningan Kickboxing Club','Jakarta','Kickboxing Muaythai'],['Tebet Fight Gym','Jakarta','Muaythai Kickboxing'],
+    ['Dojo Rawamangun','Jakarta','Karate'],['Senayan Taekwondo Club','Jakarta','Taekwondo'],
+    ['Arek Fight Gym','Surabaya','Muaythai Kickboxing'],['Sasana Malioboro','Yogyakarta','Muaythai Kickboxing Karate'],
+    ['Deli Taekwondo Club','Medan','Taekwondo'],['Dojo Pahlawan','Surabaya','Karate Taekwondo']
+  ];
+  const FM=['Raka','Dimas','Fajar','Yoga','Bayu','Kevin','Rizal','Daffa','Andika','Rio','Fikri','Gilang','Arif','Bima','Rizky','Hendra','Ilham','Galih','Asep','Dede','Wahyu','Teguh','Reza','Farhan','Aldi','Haikal','Rangga','Iqbal'];
+  const FF=['Salsa','Intan','Nadia','Rina','Dinda','Ayu','Nabila','Anisa','Zahra','Citra','Fitri','Laras','Wulan','Tiara','Rahma','Dewi','Shinta','Melati'];
+  const LN=['Saputra','Arya','Ramdani','Pratama','Prakoso','Halim','Hakim','Wibowo','Firmansyah','Maulana','Ramadhan','Nugraha','Setiawan','Kurniawan','Hidayat','Permana','Sopian','Gunawan','Lesmana','Siregar','Tanjung','Wijaya','Santoso','Lubis'];
+  const LNF=['Nurfadila','Permata','Kartika','Lestari','Anggraini','Putri','Rahmawati','Safitri','Maharani','Puspita'];
+  // fighters already shown elsewhere on the site keep their place here
+  const PIN={
+    'Muaythai|60 kg':[['Raka "Petir" Saputra','Sasana Galunggung',1],['Dimas Arya','UKM Muaythai Unpad',3]],
+    'Muaythai|63,5 kg':[['Fajar Ramdani','Sasana Dago',2],['Yoga Pratama','UKM Muaythai Unpad',5]],
+    'Kickboxing|-71 kg':[['Bayu Prakoso','Kuningan Kickboxing Club',1],['Kevin Halim','Tebet Fight Gym',2]],
+    'Taekwondo|Putra -68 kg':[['Andika Wibowo','Senayan Taekwondo Club',1],['Rio Firmansyah','Deli Taekwondo Club',2],['Rizal Hakim','UKM Taekwondo ITB',4],['Daffa Pratama','UKM Taekwondo ITB',7]],
+    'Taekwondo|Putri -49 kg':[['Salsa Nurfadila','UKM Taekwondo ITB',2],['Intan Permata','UKM Taekwondo ITB',4]],
+    'Karate|Kumite -67 kg':[['Fikri Maulana','UKM Karate Unsil',3],['Gilang Ramadhan','Dojo Cempaka',5]],
+    'Karate|Kumite putri -55 kg':[['Nadia Putri','Dojo Rawamangun',1],['Rina Kartika','Dojo Rawamangun',3]]
+  };
+  function rng(seed){let h=1779033703;for(const ch of seed){h=Math.imul(h^ch.charCodeAt(0),3432918353);h=h<<13|h>>>19;}
+    return ()=>{h=Math.imul(h^h>>>16,2246822507);h=Math.imul(h^h>>>13,3266489909);h^=h>>>16;return (h>>>0)/4294967296;};}
+  const rkCache={};
+  function buildRanking(disc,cls){
+    const key=disc+'|'+cls; if(rkCache[key]) return rkCache[key];
+    const R=rng(key), pick=a=>a[Math.floor(R()*a.length)];
+    const female=/putri/i.test(cls), gyms=GYMS.filter(g=>g[2].includes(disc));
+    const N=18, used=new Set(), list=[];
+    const pins=(PIN[key]||[]).slice();
+    for(let i=0;i<N;i++){
+      const pin=pins.find(p=>p[2]===i+1);
+      let name,gym;
+      if(pin){name=pin[0];gym=gyms.find(g=>g[0]===pin[1])||GYMS.find(g=>g[0]===pin[1]);}
+      else{
+        do{name=pick(female?FF:FM)+' '+pick(female?LN.concat(LNF):LN);}while(used.has(name)||pins.some(p=>p[0]===name));
+        // keep the three target cities well represented
+        const pool=R()<.78?gyms.filter(g=>['Tasikmalaya','Bandung','Jakarta'].includes(g[1])):gyms;
+        gym=pick(pool.length?pool:gyms);
+      }
+      used.add(name);
+      const pts=Math.round(860*Math.pow(.86,i)+R()*14);
+      const wins=Math.max(2,Math.round(pts/38+R()*3)), loss=Math.round(R()*4+i/4), draw=RK[disc].rec==='kds'&&R()<.3?1:0;
+      const ko=RK[disc].rec==='kds'?Math.round(wins*(.25+R()*.4)):0;
+      let sLeft=draw,kLeft=loss;const form=Array.from({length:5},()=>{const x=R()*(.72+i/28);if(x<.6)return 'M';if(sLeft>0&&x>.95){sLeft--;return 'S';}if(kLeft>0){kLeft--;return 'K';}return 'M';});
+      const mvR=R(), mv=i>13&&mvR<.25?'new':mvR<.35?'up'+(1+Math.floor(R()*3)):mvR<.6?'dn'+(1+Math.floor(R()*2)):'eq';
+      list.push({name,gym:gym[0],city:gym[1],pts,wins,loss,draw,ko,form,mv});
+    }
+    list.sort((a,b)=>b.pts-a.pts).forEach((f,i)=>f.nat=i+1);
+    return rkCache[key]=list;
+  }
+  const rkState={disc:'Muaythai',scope:'Nasional',cls:'60 kg'};
+  const scopes=['Nasional','Tasikmalaya','Bandung','Jakarta'];
+  chips($('#rkDisc'),Object.keys(RK),i=>{rkState.disc=Object.keys(RK)[i];renderClasses();renderRanking();});
+  chips($('#rkScope'),['Nasional','Regional Tasikmalaya','Regional Bandung','Regional Jakarta'],i=>{rkState.scope=scopes[i];renderRanking();});
+  function renderClasses(){
+    const box=$('#rkClass');box.innerHTML='';
+    const cl=RK[rkState.disc].classes;
+    if(!cl.includes(rkState.cls)) rkState.cls=cl.includes('60 kg')?'60 kg':cl[Math.min(1,cl.length-1)];
+    cl.forEach(c=>{const b=document.createElement('button');b.type='button';b.textContent=c;b.setAttribute('aria-pressed',c===rkState.cls);
+      b.onclick=()=>{rkState.cls=c;box.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));renderRanking();};box.append(b);});
+  }
+  const liveOf=name=>streams.find(s=>s.r&&(s.r===name||s.b===name));
+  const recTxt=(f,d)=>RK[d].rec==='kds'?`${f.wins}-${f.loss}-${f.draw}`:`${f.wins}-${f.loss}`;
+  const mvTxt=m=>m==='new'?['new','BARU']:m==='eq'?['eq','—']:m.startsWith('up')?['up','▲'+m.slice(2)]:['dn','▼'+m.slice(2)];
+  function nameCell(f){
+    const td=document.createElement('td');
+    const n=document.createElement('span');n.className='nm';n.textContent=f.name;td.append(n);
+    const lv=liveOf(f.name);
+    if(lv){const b=document.createElement('button');b.type='button';b.className='livechip';b.textContent='● LIVE';b.setAttribute('aria-label','Tonton '+f.name+' live');b.onclick=()=>selectStream(lv.id,true);td.append(b);}
+    const g=document.createElement('span');g.className='gy';g.textContent=f.gym;td.append(g);
+    return td;
+  }
+  function renderRanking(){
+    const {disc,scope,cls}=rkState, all=buildRanking(disc,cls);
+    const list=scope==='Nasional'?all:all.filter(f=>f.city===scope);
+    const kds=RK[disc].rec==='kds';
+    $('#rkMeta').textContent=`${scope==='Nasional'?'Ranking nasional':'Ranking regional '+scope} · ${disc} ${cls} · ${list.length} atlet · diperbarui Senin, 19 Okt 2026`;
+    const pod=$('#rkPodium');pod.innerHTML='';
+    const titles=['Juara','Penantang #1','Penantang #2'];
+    list.slice(0,3).forEach((f,i)=>{
+      const d=document.createElement('div');d.className='pod'+(i===0?' p1':'');
+      d.innerHTML=`<div class="pos">${i+1}</div><div class="who"><span class="ttl"></span><span class="nm"></span><span class="gy"></span><span class="st"><span></span><span></span></span></div>`;
+      d.querySelector('.ttl').textContent=titles[i]+(scope==='Nasional'?'':' '+scope);
+      d.querySelector('.nm').textContent=f.name; d.querySelector('.gy').textContent=f.gym+' · '+f.city;
+      const st=d.querySelectorAll('.st span'); st[0].textContent=f.pts+' poin'; st[1].textContent=(kds?'Rekor ':'M-K ')+recTxt(f,disc)+(kds?` · ${f.ko} KO`:'');
+      pod.append(d);
+    });
+    if(!list.length){pod.innerHTML='<p class="empty">Belum ada atlet terdaftar di kelas ini untuk wilayah tersebut.</p>';}
+    const t=$('#rkTable');t.innerHTML='';
+    const head=document.createElement('tr');
+    [['#',''],['±',''],['Atlet',''],['Kota','c-city'],[kds?'Rekor M-K-S':'Rekor M-K','num'],...(kds?[['KO','num']]:[]),['Poin','num'],['5 laga terakhir','c-form'],...(scope==='Nasional'?[]:[['Nas.','num']])]
+      .forEach(([h,c])=>{const th=document.createElement('th');th.textContent=h;if(c)th.className=c;head.append(th);});
+    const thead=document.createElement('thead');thead.append(head);t.append(thead);
+    const tb=document.createElement('tbody');
+    list.forEach((f,i)=>{
+      const tr=document.createElement('tr');
+      const td=(txt,c)=>{const x=document.createElement('td');x.textContent=txt;if(c)x.className=c;tr.append(x);return x;};
+      td(String(i+1),'pos');
+      const [mc,mt]=mvTxt(f.mv); const m=td(mt,'');m.innerHTML=`<span class="mv ${mc}"></span>`;m.firstChild.textContent=mt;
+      tr.append(nameCell(f));
+      td(f.city,'c-city'); td(recTxt(f,disc),'num'); if(kds) td(String(f.ko),'num'); td(String(f.pts),'num');
+      const fc=td('','c-form');const fw=document.createElement('div');fw.className='form';fw.setAttribute('aria-label','Hasil: '+f.form.join(', '));
+      f.form.forEach(r=>{const x=document.createElement('i');x.className=r;x.textContent=r;fw.append(x);});fc.append(fw);
+      if(scope!=='Nasional') td('#'+f.nat,'num');
+      tb.append(tr);
+    });
+    t.append(tb);
+  }
+  renderClasses(); renderRanking();
+
+  /* ================= Channels ================= */
+  const chans=[
+    {n:'Sasana Galunggung',s:'Muaythai · Tasikmalaya',f:'2,1 rb',v:48,c:'#c8322a',live:'s1'},
+    {n:'UKM Muaythai Unpad',s:'Muaythai · Bandung',f:'1,4 rb',v:31,c:'#2a62c4',live:'s5'},
+    {n:'Dojo Cempaka',s:'Karate · Tasikmalaya',f:'860',v:22,c:'#8a5a00'},
+    {n:'Kuningan Kickboxing Club',s:'Kickboxing · Jakarta',f:'3,7 rb',v:76,c:'#5b3fa8',live:'s6'},
+    {n:'UKM Taekwondo ITB',s:'Taekwondo · Bandung',f:'1,1 rb',v:19,c:'#1f7a5c',live:'s3'},
+    {n:'Rawamangun Karate',s:'Karate · Jakarta',f:'640',v:14,c:'#a3363f',live:'s7'},
+    {n:'Tebet Fight Gym',s:'Kickboxing · Jakarta',f:'510',v:9,c:'#3d5aa8'},
+    {n:'UKM Karate Unsil',s:'Karate · Tasikmalaya',f:'390',v:11,c:'#7a3a8a'}
+  ];
+  const ch=$('#chans');
+  chans.forEach(c=>{
+    const el=document.createElement('article');el.className='chan';
+    el.innerHTML=`<div class="chan-top"><div class="ava"></div><div><h3></h3><div class="sub"></div></div></div>
+      <div class="stat"><span>${c.f} pengikut</span><span>${c.v} video</span>${c.live?'<span class="state-live">● live</span>':''}</div>
+      <button class="btn btn-ghost" type="button" aria-pressed="false">Ikuti</button>`;
+    const av=el.querySelector('.ava');av.textContent=initials(c.n);av.style.background=c.c;
+    el.querySelector('h3').textContent=c.n;el.querySelector('.sub').textContent=c.s;
+    const b=el.querySelector('button');
+    b.onclick=()=>{const on=b.getAttribute('aria-pressed')!=='true';b.setAttribute('aria-pressed',on);b.textContent=on?'Diikuti ✓':'Ikuti';};
+    if(c.live){const w=document.createElement('button');w.type='button';w.className='btn btn-red';w.textContent='Tonton live';w.style.justifyContent='center';w.style.fontSize='13px';w.style.padding='7px';w.onclick=()=>selectStream(c.live,true);el.append(w);}
+    ch.append(el);
+  });
+
+  /* ================= Toolbar views ================= */
+  const VIEWS=['live','reels','jadwal','ranking','sasana','siarkan'];
+  function showView(v,opts){
+    if(!VIEWS.includes(v)) v='live';
+    document.querySelectorAll('.view').forEach(el=>{el.hidden=el.dataset.view!==v;});
+    document.querySelectorAll('.tab').forEach(t=>{if(t.dataset.tab===v)t.setAttribute('aria-current','page');else t.removeAttribute('aria-current');});
+    if(!opts||opts.scroll!==false) window.scrollTo(0,0);
+  }
+  document.addEventListener('click',e=>{
+    const a=e.target.closest('a[href^="#"]'); if(!a) return;
+    const id=a.getAttribute('href').slice(1);
+    if(id==='top'){e.preventDefault();showView('live');}
+    else if(VIEWS.includes(id)){e.preventDefault();showView(id);}
+  });
+  $('#cntLive').textContent=streams.length;
+  showView((location.hash||'').slice(1)||'live',{scroll:false});
+  if(location.hash){requestAnimationFrame(()=>window.scrollTo(0,0));addEventListener('load',()=>setTimeout(()=>window.scrollTo(0,0),0));}
+
+  /* ================= Apply form ================= */
+  $('#applyForm').addEventListener('submit',e=>{
+    e.preventDefault();
+    const name=$('#fName').value.trim(),wa=$('#fWa').value.replace(/[\s-]/g,'');
+    let ok=true;
+    $('#eName').textContent=name.length<3?(ok=false,'Isi nama sasana atau UKM.'):'';
+    $('#eWa').textContent=/^(\+62|62|0)8\d{7,11}$/.test(wa)?'':(ok=false,'Nomor WhatsApp harus diawali 08 atau +628, 10–13 digit.');
+    if(!ok)return;
+    const m=$('#okMsg');m.hidden=false;
+    m.textContent=`${name} tercatat untuk ${$('#fDisc').value} di ${$('#fCity').value}. Ini prototype, jadi data belum dikirim ke mana pun.`;
+  });
+})();
+</script>
+
+</body>
+</html>
